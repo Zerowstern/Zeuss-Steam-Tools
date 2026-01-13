@@ -1035,7 +1035,7 @@ function App() {
         return (
           <div className="card fade-in" style={{background: 'transparent', border: 'none', boxShadow: 'none'}}>
             <div className="loader"></div>
-            <p style={{marginTop: '1rem'}}>Initializing...</p>
+            <p style={{marginTop: '1rem', letterSpacing: '2px', fontWeight: 'bold'}}>ACCESSING SYSTEM...</p>
           </div>
         );
       
@@ -1055,11 +1055,26 @@ function App() {
       case STEPS.MAIN_MENU:
         return (
           <div className="card fade-in">
+            <div className="ascii-art">
+{`
+   ____   _    ____ ____     ____  _____ _____  _    __  __ 
+  / ___| / \\  / ___|  _ \\   / ___||_   _| ____|/ \\  |  \\/  |
+  \\___ \\/ _ \\| |  _| |_) |  \\___ \\  | | |  _| / _ \\ | |\\/| |
+   ___) / ___ \\ |_| |  _ <    ___) | | | |___/ ___ \\| |  | |
+  |____/_/   \\_\\____|_| \\_\\  |____/  |_| |_____/_/   \\_\\_|  |_|
+                                                               
+   _____ ___   ___  _     ____  
+  |_   _/ _ \\ / _ \\| |   / ___| 
+    | || | | | | | | |   \\___ \\ 
+    | || |_| | |_| | |___ ___) |
+    |_| \\___/ \\___/|_____|____/ 
+`}
+            </div>
             <h1>SAGR STEAM TOOLS</h1>
-            <p>Advanced steam extraction & cracking utility</p>
-            <button onClick={() => setStep(STEPS.DOWNLOAD_METHOD)}> Download Clean Files</button>
+            <p style={{marginBottom: '2rem', opacity: 0.7}}>[ SYSTEM STATUS: READY ]</p>
+            <button onClick={() => setStep(STEPS.DOWNLOAD_METHOD)}> DOWNLOAD CLEAN FILES</button>
             <div className="spacer"></div>
-            <button className="secondary" onClick={() => setStep(STEPS.CRACK_FLOW)}> Crack Existing Game</button>
+            <button className="secondary" onClick={() => setStep(STEPS.CRACK_FLOW)}> BYPASS DRM / CRACK</button>
           </div>
         );
 
@@ -1259,6 +1274,7 @@ function App() {
 
   return (
     <main className="container">
+      <div className="scanline"></div>
       {loading && step !== STEPS.STEAMLESS_RUNNING && step !== STEPS.GOLDBERG_RUNNING ? renderConsole() : renderContent()}
     </main>
   );
