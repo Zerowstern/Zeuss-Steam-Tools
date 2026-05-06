@@ -1,8 +1,8 @@
 $ErrorActionPreference = "Stop"
 $ProjectPath = "c:\Programs\steam-download-and-autocrack"
 $BuildPath = "$ProjectPath\src-tauri\target\release"
-$DistDir = "$ProjectPath\SAGR_STEAM_TOOLS_Dist"
-$ZipName = "$ProjectPath\SAGR_STEAM_TOOLS_Release.zip"
+$DistDir = "$ProjectPath\ZEUSS_STEAM_TOOLS_Dist"
+$ZipName = "$ProjectPath\ZEUSS_STEAM_TOOLS_Release.zip"
 
 Write-Host "Starting Bundling Process..."
 
@@ -45,4 +45,4 @@ Write-Host "Compressing to $ZipName..."
 Compress-Archive -Path "$DistDir\*" -DestinationPath $ZipName
 
 Write-Host "Bundling Complete!"
-Write-Host "Navigate to $ProjectPath to find 'SAGR_STEAM_TOOLS_Release.zip'"
+Write-Host "Navigate to $ProjectPath to find 'ZEUSS_STEAM_TOOLS_Release.zip'"

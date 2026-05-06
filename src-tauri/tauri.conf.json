@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "SAGR STEAM TOOLS",
+  "productName": "ZEUSS STEAM TOOLS",
   "version": "0.1.0",
   "identifier": "com.sagarchaulagai.sagrsteamtools",
   "build": {
@@ -12,7 +12,7 @@
   "app": {
     "windows": [
       {
-        "title": "SAGR STEAM TOOLS",
+        "title": "ZEUSS STEAM TOOLS",
         "width": 800,
         "height": 600
       }

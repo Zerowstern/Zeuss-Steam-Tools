@@ -1070,7 +1070,7 @@ function App() {
     |_| \\___/ \\___/|_____|____/ 
 `}
             </div>
-            <h1>SAGR STEAM TOOLS</h1>
+            <h1>ZEUSS STEAM TOOLS</h1>
             <p style={{marginBottom: '2rem', opacity: 0.7}}>[ SYSTEM STATUS: READY ]</p>
             <button onClick={() => setStep(STEPS.DOWNLOAD_METHOD)}> DOWNLOAD CLEAN FILES</button>
             <div className="spacer"></div>
