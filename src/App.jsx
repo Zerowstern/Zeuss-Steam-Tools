@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { open } from "@tauri-apps/plugin-dialog";
+import { WebviewWindow } from '@tauri-apps/api/webviewWindow';
 import "./App.css";
 
 const STEPS = {
@@ -17,6 +18,8 @@ const STEPS = {
   STEAMLESS_RUNNING: 9,
   GOLDBERG_CONFIG: 10,
   GOLDBERG_RUNNING: 11,
+  ONLINEFIX_CONFIG: 12,
+  ONLINEFIX_RUNNING: 13,
 };
 
 function App() {
@@ -82,6 +85,9 @@ function App() {
   
   // App State
   const [loading, setLoading] = useState(false);
+
+  const [onlineFixUrl, setOnlineFixUrl] = useState(null);
+  const [onlineFixStatus, setOnlineFixStatus] = useState('idle'); // idle | checking | found | notfound
   
   // Console & Progress State
   const [logs, setLogs] = useState([]);
@@ -89,6 +95,56 @@ function App() {
   const [currentFile, setCurrentFile] = useState("");
   const logsEndRef = useRef(null);
   const searchTimeoutRef = useRef(null);
+
+   const canvasRef = useRef(null);
+
+  useEffect(() => {
+    if (step !== STEPS.MAIN_MENU) return;
+
+    const ascii = [
+      " ███████████ ██████████ █████  █████  █████████   █████████  ",
+      "▒█▒▒▒▒▒▒███ ▒▒███▒▒▒▒▒█▒▒███  ▒▒███  ███▒▒▒▒▒███ ███▒▒▒▒▒███",
+      "▒     ███▒   ▒███  █ ▒  ▒███   ▒███ ▒███    ▒▒▒ ▒███    ▒▒▒ ",
+      "     ███     ▒██████    ▒███   ▒███ ▒▒█████████ ▒▒█████████ ",
+      "    ███      ▒███▒▒█    ▒███   ▒███  ▒▒▒▒▒▒▒▒███ ▒▒▒▒▒▒▒▒███",
+      "  ████     █ ▒███ ▒   █ ▒███   ▒███  ███    ▒███ ███    ▒███",
+      " ███████████ ██████████ ▒▒████████  ▒▒█████████ ▒▒█████████ ",
+      "▒▒▒▒▒▒▒▒▒▒▒ ▒▒▒▒▒▒▒▒▒▒   ▒▒▒▒▒▒▒▒    ▒▒▒▒▒▒▒▒▒   ▒▒▒▒▒▒▒▒▒  "
+    ];
+
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const FONT_SIZE = 9;
+    const FONT = `${FONT_SIZE}px "JetBrains Mono", monospace`;
+
+    ctx.font = FONT;
+    const charW = ctx.measureText('█').width;
+    const charH = FONT_SIZE * 1.3;
+    canvas.width = Math.ceil(Math.max(...ascii.map(r => r.length)) * charW);
+    canvas.height = Math.ceil(ascii.length * charH);
+
+    let t = 0;
+    let animId;
+    const draw = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.font = FONT;
+      for (let row = 0; row < ascii.length; row++) {
+        for (let col = 0; col < ascii[row].length; col++) {
+          const ch = ascii[row][col];
+          if (ch === ' ') continue;
+          const wave = Math.sin((col * 0.2) + (row * 0.6) + t) * 0.5 + 0.5;
+          const green = Math.floor(100 + wave * 155);
+          ctx.fillStyle = `rgb(0, ${green}, 30)`;
+          ctx.fillText(ch, col * charW, (row + 1) * charH);
+        }
+      }
+      t += 0.04;
+      animId = requestAnimationFrame(draw);
+    };
+    draw();
+    return () => cancelAnimationFrame(animId);
+  }, [step]);
 
   useEffect(() => {
     checkDotnet();
@@ -1007,6 +1063,66 @@ function App() {
     </div>
   );
 
+async function openOnlineFixSearch() {
+  const name = gameInfo?.name || appId;
+  if (!name) { alert("Select a game first"); return; }
+  
+  const query = encodeURIComponent(name);
+  try {
+    const webview = new WebviewWindow('onlinefix', {
+      url: `https://online-fix.me/?do=search&subaction=search&story=${query}`,
+      title: 'Online Fix - Search',
+      width: 800,
+      height: 400,
+    });
+    
+    webview.once('tauri://error', (e) => {
+      console.error('Webview error:', e);
+      alert('Error: ' + JSON.stringify(e));
+    });
+  } catch (e) {
+    console.error(e);
+    alert('Failed: ' + e);
+  }
+}
+
+const OnlineFixConfig = () => (
+  <div className="card fade-in" style={{maxWidth: '700px'}}>
+    <h2>Online Fix Config</h2>
+    <GameHeader />
+    
+    <div className="section">
+      <h3>1. Game Selection</h3>
+      <div className="input-group">
+        <input 
+          placeholder="App ID (e.g. 730)" 
+          value={appId} 
+          onChange={(e) => setAppId(e.target.value)} 
+        />
+        <button className="secondary" style={{width: 'auto'}} onClick={() => setShowSearch(true)}>🔍</button>
+      </div>
+    </div>
+  <button 
+    className="primary"
+    onClick={openOnlineFixSearch}
+    style={{marginTop: '0.5rem'}}
+  >
+    SEARCH ON ONLINE-FIX.ME
+  </button>
+
+    
+
+    <div className="spacer"></div>
+    <button className="secondary" onClick={() => {
+      setOnlineFixStatus('idle');
+      setOnlineFixUrl(null);
+      setStep(fromDownload ? STEPS.MAIN_MENU : STEPS.CRACK_FLOW);
+    }}>
+      Back
+    </button>
+  </div>
+);
+
   // Crack Flow Menu
   const CrackFlowMenu = () => (
     <div className="card fade-in">
@@ -1019,6 +1135,10 @@ function App() {
       <div className="spacer"></div>
       <button onClick={() => setStep(STEPS.GOLDBERG_CONFIG)}>
          Apply Goldberg Emulator
+      </button>
+      <div className="spacer"></div>
+            <button onClick={() => setStep(STEPS.ONLINEFIX_CONFIG)}>
+         Online Fix
       </button>
       <div className="spacer"></div>
       <button className="secondary" onClick={() => setStep(STEPS.MAIN_MENU)}>Back</button>
@@ -1055,22 +1175,10 @@ function App() {
       case STEPS.MAIN_MENU:
         return (
           <div className="card fade-in">
-            <div className="ascii-art">
-{`
-   ____   _    ____ ____     ____  _____ _____  _    __  __ 
-  / ___| / \\  / ___|  _ \\   / ___||_   _| ____|/ \\  |  \\/  |
-  \\___ \\/ _ \\| |  _| |_) |  \\___ \\  | | |  _| / _ \\ | |\\/| |
-   ___) / ___ \\ |_| |  _ <    ___) | | | |___/ ___ \\| |  | |
-  |____/_/   \\_\\____|_| \\_\\  |____/  |_| |_____/_/   \\_\\_|  |_|
-                                                               
-   _____ ___   ___  _     ____  
-  |_   _/ _ \\ / _ \\| |   / ___| 
-    | || | | | | | | |   \\___ \\ 
-    | || |_| | |_| | |___ ___) |
-    |_| \\___/ \\___/|_____|____/ 
-`}
-            </div>
-            <h1>ZEUSS STEAM TOOLS</h1>
+            <canvas
+              ref={canvasRef}
+              style={{ display: 'block', margin: '0 auto 1rem auto', maxWidth: '100%' }}
+            />
             <p style={{marginBottom: '2rem', opacity: 0.7}}>[ SYSTEM STATUS: READY ]</p>
             <button onClick={() => setStep(STEPS.DOWNLOAD_METHOD)}> DOWNLOAD CLEAN FILES</button>
             <div className="spacer"></div>
@@ -1189,6 +1297,12 @@ function App() {
         return <GoldbergConfig />;
         
       case STEPS.GOLDBERG_RUNNING:
+        return renderConsole("Goldberg Output", false);
+
+      case STEPS.ONLINEFIX_CONFIG:
+        return <OnlineFixConfig />;
+        
+      case STEPS.ONLINEFIX_RUNNING:
         return renderConsole("Goldberg Output", false);
 
       default:

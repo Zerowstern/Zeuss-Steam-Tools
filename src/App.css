@@ -137,13 +137,12 @@ h1 {
   font-size: 8px;
   line-height: 8px;
   color: var(--primary-color);
-  margin-bottom: 2rem;
+  margin: 0 auto 2rem auto;
   white-space: pre;
-  display: inline-block;
-  text-align: left;
+  display: block;
+  text-align: center;
   opacity: 0.8;
 }
-
 
 h2 {
   font-size: 1.5rem;
